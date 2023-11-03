@@ -1,10 +1,10 @@
 const path = require('path');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const nodeExternals = require('webpack-node-externals');
-const TerserPlugin = require("terser-webpack-plugin");
+const { EsbuildPlugin } = require('esbuild-loader')
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin")
 const generalConfig = {
-  entry: './index.js',
+  entry: './src/index.js',
   watchOptions: {
     aggregateTimeout: 600,
     ignored: /node_modules/,
@@ -19,11 +19,13 @@ const generalConfig = {
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/,
+        test: /\.[jt]sx?$/,
+        loader: 'esbuild-loader',
+        options: {
+          target: 'node'
+        }
       },
-    ],
+    ]
   },
   resolve: {
     fallback: {
@@ -37,11 +39,8 @@ const generalConfig = {
   optimization: {
     minimize: true,
     minimizer: [
-      new TerserPlugin({
-        terserOptions: {
-          keep_classnames: true,
-          keep_fnames: true,
-        },
+      new EsbuildPlugin({
+        target: 'node'
       }),
     ],
   },
@@ -52,19 +51,31 @@ const nodeConfig = {
   externals: [nodeExternals()],
   output: {
     path: path.resolve(__dirname, './dist'),
-    filename: 'ext.node.js',
-    libraryTarget: 'umd',
+    filename: 'bundle.cjs.js',
+    //globalObject: 'this',
+    libraryTarget: 'commonjs',
     libraryExport: 'default',
   },
 };
-
+const moduleConfig = {
+  output: {
+    path: path.resolve(__dirname, './dist'),
+    filename: 'bundle.esm.js',
+    globalObject: 'this',
+    libraryTarget: 'module',
+    libraryExport: 'default',
+  },
+  experiments: {
+    outputModule: true,
+  },
+};
 const browserConfig = {
   target: 'web',
   output: {
     path: path.resolve(__dirname, './dist'),
-    filename: 'ext.browser.js',
-    libraryTarget: 'umd',
+    filename: 'bundle.umd.js',
     globalObject: 'this',
+    libraryTarget: 'umd',
     libraryExport: 'default',
     umdNamedDefine: true,
     library: 'extjs',
@@ -74,13 +85,15 @@ const browserConfig = {
 module.exports = (env, argv) => {
   if (argv.mode === 'development') {
     generalConfig.devtool = 'cheap-module-source-map';
+    generalConfig.mode = 'development';
   } else if (argv.mode === 'production') {
   } else {
     throw new Error('Specify env');
   }
 
   Object.assign(nodeConfig, generalConfig);
+  Object.assign(moduleConfig, generalConfig);
   Object.assign(browserConfig, generalConfig);
 
-  return [nodeConfig, browserConfig];
+  return [nodeConfig, moduleConfig, browserConfig];
 };

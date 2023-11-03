@@ -117,7 +117,7 @@ const validatePrincipal = (p) => {
   }
 }
 
-export const getSubaccountFromHex = (hex) => {
+const getSubaccountFromHex = (hex) => {
   const dec = fromHexString(hex);
   return Array(32-dec.length).fill(0).concat(dec);
 };
