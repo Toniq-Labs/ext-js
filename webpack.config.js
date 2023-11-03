@@ -2,6 +2,7 @@ const path = require('path');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const nodeExternals = require('webpack-node-externals');
 const TerserPlugin = require("terser-webpack-plugin");
+const NodePolyfillPlugin = require("node-polyfill-webpack-plugin")
 const generalConfig = {
   entry: './index.js',
   watchOptions: {
@@ -9,6 +10,7 @@ const generalConfig = {
     ignored: /node_modules/,
   },
   plugins: [
+    //new NodePolyfillPlugin(),
     new CleanWebpackPlugin({
       cleanStaleWebpackAssets: false,
       cleanOnceBeforeBuildPatterns: [path.resolve(__dirname, './dist')],
@@ -25,6 +27,8 @@ const generalConfig = {
   },
   resolve: {
     fallback: {
+      "crypto-browserify": require.resolve("crypto-browserify"),
+      "crypto": false,
       Buffer: require.resolve('buffer'),
       fetch: require.resolve('whatwg-fetch'),
     },

@@ -1,7 +1,8 @@
 /* global BigInt */
 import { Actor, HttpAgent } from "@dfinity/agent";  
 import { Principal } from "@dfinity/principal";
-import { LEDGER_CANISTER_ID, GOVERNANCE_CANISTER_ID, NNS_CANISTER_ID, CYCLES_MINTING_CANISTER_ID, getCyclesTopupSubAccount, rosettaApi, principalToAccountIdentifier, toHexString, from32bits, to32bits, isHex, getSubAccountArray, fromHexString } from "./utils.js";
+const bip39 = require('bip39')
+import { LEDGER_CANISTER_ID, GOVERNANCE_CANISTER_ID, NNS_CANISTER_ID, CYCLES_MINTING_CANISTER_ID, getCyclesTopupSubAccount, rosettaApi, principalToAccountIdentifier, toHexString, from32bits, to32bits, isHex, getSubAccountArray, fromHexString, mnemonicToId } from "./utils.js";
 
 import ledgerIDL from './candid/ledger.did.js';
 import governanceIDL from './candid/governance.did.js';
@@ -371,5 +372,7 @@ const extjs = {
   principalToAccountIdentifier : principalToAccountIdentifier,
   fromHexString : fromHexString,
   toHexString : toHexString,
+  mnemonicToId : mnemonicToId,
+  generateMnemonic : bip39.generateMnemonic,
 };
 export default extjs;

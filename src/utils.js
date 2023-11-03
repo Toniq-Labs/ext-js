@@ -117,6 +117,10 @@ const validatePrincipal = (p) => {
   }
 }
 
+export const getSubaccountFromHex = (hex) => {
+  const dec = fromHexString(hex);
+  return Array(32-dec.length).fill(0).concat(dec);
+};
 //IC specific utils
 export { 
   LEDGER_CANISTER_ID, 
@@ -130,6 +134,7 @@ export {
   Principal, 
   principalToAccountIdentifier, 
   getSubAccountArray, 
+  getSubaccountFromHex, 
   from32bits, 
   to32bits, 
   toHexString, 
