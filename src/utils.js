@@ -3,7 +3,6 @@ import { Principal } from "@dfinity/principal";
 import { Ed25519KeyIdentity } from "@dfinity/identity";
 import { getCrc32 } from '@dfinity/principal/lib/esm/utils/getCrc';
 import { sha224 } from '@dfinity/principal/lib/esm/utils/sha224';
-import RosettaApi from './RosettaApi.js';
 const sjcl = require('sjcl')
 const bip39 = require('bip39')
 const pbkdf2 = require("pbkdf2");
@@ -12,7 +11,6 @@ const LEDGER_CANISTER_ID = "ryjl3-tyaaa-aaaaa-aaaba-cai";
 const GOVERNANCE_CANISTER_ID = "rrkah-fqaaa-aaaaa-aaaaq-cai";
 const NNS_CANISTER_ID = "qoctq-giaaa-aaaaa-aaaea-cai";
 const CYCLES_MINTING_CANISTER_ID = "rkp4c-7iaaa-aaaaa-aaaca-cai";
-const rosettaApi = new RosettaApi();
 const getCyclesTopupAddress = (canisterId) => {
   return principalToAccountIdentifier(CYCLES_MINTING_CANISTER_ID, getCyclesTopupSubAccount(canisterId));
 }
@@ -130,7 +128,6 @@ export {
   getCyclesTopupAddress, 
   getCyclesTopupSubAccount, 
   amountToBigInt, 
-  rosettaApi, 
   Principal, 
   principalToAccountIdentifier, 
   getSubAccountArray, 

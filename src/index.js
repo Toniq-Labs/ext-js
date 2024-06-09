@@ -2,7 +2,7 @@
 import { Actor, HttpAgent } from "@dfinity/agent";  
 import { Principal } from "@dfinity/principal";
 const bip39 = require('bip39')
-import { LEDGER_CANISTER_ID, GOVERNANCE_CANISTER_ID, NNS_CANISTER_ID, CYCLES_MINTING_CANISTER_ID, getCyclesTopupSubAccount, rosettaApi, principalToAccountIdentifier, toHexString, from32bits, to32bits, isHex, getSubAccountArray, fromHexString, mnemonicToId } from "./utils.js";
+import { LEDGER_CANISTER_ID, GOVERNANCE_CANISTER_ID, NNS_CANISTER_ID, CYCLES_MINTING_CANISTER_ID, getCyclesTopupSubAccount, principalToAccountIdentifier, toHexString, from32bits, to32bits, isHex, getSubAccountArray, fromHexString, mnemonicToId } from "./utils.js";
 
 import ledgerIDL from './candid/ledger.did.js';
 import governanceIDL from './candid/governance.did.js';
@@ -197,9 +197,12 @@ class ExtConnection {
           var args;
           switch(tokenObj.canister) {
             case LEDGER_CANISTER_ID:
-              rosettaApi.getAccountBalance(address).then(b => {       
-                resolve(b)
-              });
+              args = {
+                "account" : address
+              };
+              api.account_balance_dfx(args).then(b => {
+                resolve(b);
+              }).catch(reject);
             break;
             case "qz7gu-giaaa-aaaaf-qaaka-cai":
               args = {
@@ -228,25 +231,7 @@ class ExtConnection {
         return new Promise((resolve, reject) => {
           switch(tokenObj.canister) {
             case LEDGER_CANISTER_ID:
-              rosettaApi.getTransactionsByAccount(address).then(ts => {    
-                if (!Array.isArray(ts)) resolve([]);
-                var _ts = [];
-                ts.map(_t => {
-                  if (_t.type !== "TRANSACTION") return false;
-                  if (_t.status !== "COMPLETED") return false;
-                  _ts.push({
-                    from : _t.account1Address,
-                    to :  _t.account2Address,
-                    amount : Number(_t.amount)/(10**8),
-                    fee : Number(_t.fee)/(10**8),
-                    hash : _t.hash,
-                    timestamp : _t.timestamp,
-                    memo : Number(_t.memo),
-                  });
-                  return true;
-                });
-                resolve(_ts);
-              }).catch(reject);
+              resolve([]);  
             break;
             case "qz7gu-giaaa-aaaaf-qaaka-cai":
             default:
@@ -375,4 +360,10 @@ const extjs = {
   mnemonicToId : mnemonicToId,
   generateMnemonic : bip39.generateMnemonic,
 };
+
 export default extjs;
+
+// Ensure compatibility with CommonJS
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+  module.exports = extjs;
+}

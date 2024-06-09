@@ -1,20 +1,21 @@
 const path = require('path');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const nodeExternals = require('webpack-node-externals');
-const { EsbuildPlugin } = require('esbuild-loader')
-const NodePolyfillPlugin = require("node-polyfill-webpack-plugin")
-const generalConfig = {
+const { EsbuildPlugin } = require('esbuild-loader');
+const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
+
+const commonConfig = {
   entry: './src/index.js',
   watchOptions: {
     aggregateTimeout: 600,
     ignored: /node_modules/,
   },
   plugins: [
-    //new NodePolyfillPlugin(),
     new CleanWebpackPlugin({
       cleanStaleWebpackAssets: false,
       cleanOnceBeforeBuildPatterns: [path.resolve(__dirname, './dist')],
     }),
+    new NodePolyfillPlugin(),
   ],
   module: {
     rules: [
@@ -22,10 +23,11 @@ const generalConfig = {
         test: /\.[jt]sx?$/,
         loader: 'esbuild-loader',
         options: {
-          target: 'node'
-        }
+          target: 'node14',
+          format: 'cjs',
+        },
       },
-    ]
+    ],
   },
   resolve: {
     fallback: {
@@ -40,40 +42,41 @@ const generalConfig = {
     minimize: true,
     minimizer: [
       new EsbuildPlugin({
-        target: 'node'
+        target: 'node14',
+        format: 'cjs',
       }),
     ],
   },
 };
 
-const nodeConfig = {
+const nodeConfigWithDeps = {
+  ...commonConfig,
   target: 'node',
+  output: {
+    path: path.resolve(__dirname, './dist'),
+    filename: 'ext.node.full.js',
+    libraryTarget: 'commonjs2',
+  },
+  externals: [], // Include all dependencies
+};
+
+const nodeConfigWithoutDeps = {
+  ...commonConfig,
+  target: 'node',
+  output: {
+    path: path.resolve(__dirname, './dist'),
+    filename: 'ext.node.js',
+    libraryTarget: 'commonjs2',
+  },
   externals: [nodeExternals()],
-  output: {
-    path: path.resolve(__dirname, './dist'),
-    filename: 'bundle.cjs.js',
-    //globalObject: 'this',
-    libraryTarget: 'commonjs',
-    libraryExport: 'default',
-  },
 };
-const moduleConfig = {
-  output: {
-    path: path.resolve(__dirname, './dist'),
-    filename: 'bundle.esm.js',
-    globalObject: 'this',
-    libraryTarget: 'module',
-    libraryExport: 'default',
-  },
-  experiments: {
-    outputModule: true,
-  },
-};
+
 const browserConfig = {
+  ...commonConfig,
   target: 'web',
   output: {
     path: path.resolve(__dirname, './dist'),
-    filename: 'bundle.umd.js',
+    filename: 'ext.js',
     globalObject: 'this',
     libraryTarget: 'umd',
     libraryExport: 'default',
@@ -84,16 +87,13 @@ const browserConfig = {
 
 module.exports = (env, argv) => {
   if (argv.mode === 'development') {
-    generalConfig.devtool = 'cheap-module-source-map';
-    generalConfig.mode = 'development';
+    commonConfig.devtool = 'cheap-module-source-map';
+    commonConfig.mode = 'development';
   } else if (argv.mode === 'production') {
+    commonConfig.mode = 'production';
   } else {
     throw new Error('Specify env');
   }
 
-  Object.assign(nodeConfig, generalConfig);
-  Object.assign(moduleConfig, generalConfig);
-  Object.assign(browserConfig, generalConfig);
-
-  return [nodeConfig, moduleConfig, browserConfig];
+  return [nodeConfigWithDeps, nodeConfigWithoutDeps, browserConfig];
 };
